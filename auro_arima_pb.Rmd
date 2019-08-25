@@ -1,0 +1,56 @@
+---
+title: "Auto-arima test for RPL"
+output: html_notebook
+---
+#R indexing--> [], starts from 1
+#Python indexing--> [), starts from 0
+## Objective: forecast 90 days after the latest data
+
+```{r}
+library(forecast)
+library(Metrics)
+library(zoo)
+```
+
+```{r}
+data = read.csv("inflation_actual_f.csv")
+```
+
+```{r}
+pacf(ts(data[,1]),1,lag.max = 90)
+```
+
+## FORECAST
+```{r}
+myp=7
+myq=7
+maxorder<-(myp+myq)*2
+#model = auto.arima(as.vector(train['Weekly_Recharges']),stepwise=FALSE,approximation = FALSE, max.p = 8, max.q = 16, max.order=maxorder, num.cores = 6)
+model = auto.arima(ts(rev(data$inflation),frequency = 1),seasonal = FALSE,stepwise=FALSE,approximation = TRUE, max.p = myp, max.q = myq, max.P = myp, max.Q = myq, max.d = 4, max.D=4, max.order=120, num.cores = 3,parallel = TRUE)
+
+```
+
+
+```{r}
+arimaorder(model)
+```
+
+```{r}
+flength=6
+fcast_no_holdout <- forecast(model,flength)
+```
+
+```{r}
+plot(fcast_no_holdout)
+```
+
+```{r}
+out=as.data.frame(fcast_no_holdout) # data can be captured to target excel files
+write.csv(out, file = "pb_forecast_b.csv",row.names=TRUE)
+```
+
+
+# INVEST!
+
+
+
